@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "ms-vscode.cpptools",
+    "llvm-vs-code-extensions.vscode-clangd",
+    "ms-vscode.cmake-tools",
+    "slevesque.shader",
+    "eamodio.gitlens",
+    "vadimcn.vscode-lldb",
+    "twxs.cmake"
+  ]
+}

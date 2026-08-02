@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -e
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+# Format staged C/C++ files with clang-format (if available)
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(cpp|cc|c|h|hpp)$" || true)
+if [ -n "$FILES" ]; then
+  for f in $FILES; do
+    if command -v clang-format >/dev/null 2>&1; then
+      clang-format -i "$f"
+      git add "$f"
+    fi
+  done
+fi
+# Try to run project style-check target if it exists; notify if missing
+if command -v cmake >/dev/null 2>&1; then
+  mkdir -p build
+  cmake -S . -B build >/dev/null 2>&1 || true
+  if cmake --build build --target style-check >/dev/null 2>&1; then
+    :
+  else
+    echo "Napomena: style-check target nije pronađen ili nije uspeo; pokrenite proveru stila lokalno pre push-a."
+  fi
+fi
+exit 0
