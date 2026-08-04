@@ -31,7 +31,7 @@ void GUIController::draw() {
     ImGui::SeparatorText("Lampa iznad stola (tackasto svetlo)");
     ImGui::Checkbox("Ukljucena##lamp", &lighting.lamp.enabled);
     ImGui::ColorEdit3("Diffuse##lamp", &lighting.lamp.diffuse.x);
-    ImGui::SliderFloat3("Pozicija##lamp", &lighting.lamp.position.x, -5.0f, 5.0f);
+    ImGui::SliderFloat3("Pozicija##lamp", &lighting.lamp.position.x, -8.0f, 8.0f);
     ImGui::SliderFloat("Slabljenje (linear)##lamp", &lighting.lamp.linear, 0.0f, 0.5f);
     ImGui::SliderFloat("Slabljenje (quadratic)##lamp", &lighting.lamp.quadratic, 0.0f, 1.0f);
 

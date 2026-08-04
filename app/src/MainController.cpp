@@ -22,10 +22,16 @@ void MainController::initialize() {
             std::move(observer));
 
     auto camera = engine::core::Controller::get<engine::graphics::GraphicsController>()->camera();
-    camera->Position = glm::vec3(0.0f, 1.6f, 3.0f);
+    // Positioned and oriented to face into the room, based on the model's real world-space bounding
+    // box (approx. min (-4.46, -0.14, 0.60), max (3.64, 2.88, 7.50)).
+    camera->Position = glm::vec3(-0.4f, 1.6f, -1.0f);
+    camera->Front = glm::vec3(0.0f, 0.0f, 1.0f);
+    camera->Right = glm::vec3(-1.0f, 0.0f, 0.0f);
+    camera->Up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     // Room starts dim; only the moonlight-like directional light is on until the lamp is switched on.
     m_lighting.lamp.enabled = false;
+    m_lighting.lamp.position = glm::vec3(-0.4f, 2.6f, 4.0f);
 }
 
 bool MainController::loop() {
