@@ -34,6 +34,10 @@ public:
         return m_lighting;
     }
 
+    float &table_scale() {
+        return m_table_scale;
+    }
+
 private:
     void initialize() override;
 
@@ -54,6 +58,7 @@ private:
     void update_camera();
 
     SceneLighting m_lighting{};
+    float m_table_scale{1.0f};
     bool m_lamp_switch_in_progress{false};
     bool m_cursor_enabled{true};
 };

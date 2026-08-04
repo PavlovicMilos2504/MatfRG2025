@@ -49,7 +49,9 @@ in vec3 Normal;
 in vec3 FragPos;
 
 uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
+// Model does not provide dedicated specular maps (PBR baseColor workflow),
+// so a constant specular strength is used instead.
+uniform float specularStrength;
 uniform vec3 viewPos;
 uniform DirLight dirLight;
 uniform PointLight pointLight;
@@ -91,7 +93,7 @@ void main() {
     vec3 normal = normalize(Normal);
     vec3 view_dir = normalize(viewPos - FragPos);
     vec3 diffuse_color = texture(texture_diffuse1, TexCoords).rgb;
-    vec3 specular_color = texture(texture_specular1, TexCoords).rgb;
+    vec3 specular_color = vec3(specularStrength);
 
     vec3 result = calculate_dir_light(dirLight, normal, view_dir, diffuse_color, specular_color);
     result += calculate_point_light(pointLight, normal, FragPos, view_dir, diffuse_color, specular_color);

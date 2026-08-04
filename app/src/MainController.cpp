@@ -3,6 +3,7 @@
 #include <app/MainController.hpp>
 #include <engine/core/Engine.hpp>
 #include <engine/graphics/GraphicsController.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include <spdlog/spdlog.h>
 
@@ -92,8 +93,9 @@ void MainController::draw_table() {
     shader->use();
     shader->set_mat4("projection", graphics->projection_matrix());
     shader->set_mat4("view", graphics->camera()->view_matrix());
-    shader->set_mat4("model", glm::mat4(1.0f));
+    shader->set_mat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(m_table_scale)));
     shader->set_vec3("viewPos", graphics->camera()->Position);
+    shader->set_float("specularStrength", 0.3f);
 
     const auto &dir = m_lighting.directional;
     shader->set_bool("dirLight.enabled", dir.enabled);

@@ -35,6 +35,9 @@ void GUIController::draw() {
     ImGui::SliderFloat("Slabljenje (linear)##lamp", &lighting.lamp.linear, 0.0f, 0.5f);
     ImGui::SliderFloat("Slabljenje (quadratic)##lamp", &lighting.lamp.quadratic, 0.0f, 1.0f);
 
+    ImGui::SeparatorText("Model stola");
+    ImGui::SliderFloat("Skala", &engine::core::Controller::get<MainController>()->table_scale(), 0.1f, 3.0f);
+
     ImGui::End();
     graphics->end_gui();
 }
