@@ -159,6 +159,12 @@ private:
     */
     void initialize() override;
 
+    /**
+    * @brief Keeps the perspective FOV in sync with @ref Camera::Zoom, which is otherwise only read
+    * once during @ref GraphicsController::initialize.
+    */
+    void update() override;
+
     void terminate();
 
     PerspectiveMatrixParams m_perspective_params{};

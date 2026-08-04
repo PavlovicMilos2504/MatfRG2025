@@ -41,6 +41,13 @@ void GraphicsController::initialize() {
     RG_GUARANTEE(ImGui_ImplOpenGL3_Init("#version 330 core"), "ImGUI failed to initialize for OpenGL");
 }
 
+void GraphicsController::update() {
+    // Camera::zoom() (invoked on mouse scroll) only updates camera->Zoom; without this, the
+    // perspective FOV would stay frozen at its initial value since it is otherwise only read once,
+    // in GraphicsController::initialize().
+    m_perspective_params.FOV = glm::radians(m_camera.Zoom);
+}
+
 void GraphicsController::terminate() {
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplOpenGL3_Shutdown();

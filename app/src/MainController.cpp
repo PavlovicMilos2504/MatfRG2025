@@ -22,16 +22,23 @@ void MainController::initialize() {
             std::move(observer));
 
     auto camera = engine::core::Controller::get<engine::graphics::GraphicsController>()->camera();
-    // Positioned and oriented to face into the room, based on the model's real world-space bounding
-    // box (approx. min (-4.46, -0.14, 0.60), max (3.64, 2.88, 7.50)).
-    camera->Position = glm::vec3(-0.4f, 1.6f, -1.0f);
-    camera->Front = glm::vec3(0.0f, 0.0f, 1.0f);
-    camera->Right = glm::vec3(-1.0f, 0.0f, 0.0f);
-    camera->Up = glm::vec3(0.0f, 1.0f, 0.0f);
+    // Positioned in the room's open corner (x close to the max bound, x:[-4.46,3.64], which has no
+    // wall geometry), looking diagonally across the room at the billiard table (approx. (-0.4, 0.75, 4.0)).
+    camera->Position = glm::vec3(3.0f, 1.7f, 2.0f);
+    camera->Yaw = 149.5f;
+    camera->Pitch = -5.0f;
+    // rotate_camera(0, 0) forces Front/Right/Up to be recomputed from the Yaw/Pitch set above,
+    // since update_camera_vectors() is private and only invoked from the constructor or rotate_camera().
+    camera->rotate_camera(0.0f, 0.0f);
 
     // Room starts dim; only the moonlight-like directional light is on until the lamp is switched on.
     m_lighting.lamp.enabled = false;
     m_lighting.lamp.position = glm::vec3(-0.4f, 2.6f, 4.0f);
+
+    // Lock the cursor immediately so mouse movement rotates the camera from the very first frame.
+    auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+    m_cursor_enabled = false;
+    platform->set_enable_cursor(m_cursor_enabled);
 }
 
 bool MainController::loop() {
