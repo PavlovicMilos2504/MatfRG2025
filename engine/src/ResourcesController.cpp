@@ -126,7 +126,11 @@ Model *ResourcesController::model(const std::string &name) {
         }
         std::filesystem::path model_path = m_models_path / std::filesystem::path(config["resources"]["models"][name]["path"].get<std::string>());
         Assimp::Importer importer;
-        int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace;
+        // aiProcess_PreTransformVertices bakes each node's transformation into its mesh vertices.
+        // Without it, meshes belonging to nested nodes (common in multi-object scenes exported from
+        // tools like Blender/3ds Max) are drawn using their raw local-space coordinates only, since
+        // process_node below does not otherwise accumulate and apply node transforms.
+        int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices;
         if (config["resources"]["models"][name].value<bool>("flip_uvs", false)) {
             flags |= aiProcess_FlipUVs;
         }
