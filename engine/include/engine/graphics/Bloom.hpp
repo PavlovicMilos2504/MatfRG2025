@@ -49,13 +49,14 @@ public:
     * @brief Blurs the bright-pass texture using a two-pass Gaussian blur, then additively composites
     * it with the scene texture, tone maps, and draws the result as a fullscreen quad onto the
     * currently bound framebuffer.
-    * @param blur_shader Shader with uniforms: `sampler2D image`, `bool horizontal`.
+    * @param blur_shader Shader with uniforms: `sampler2D image`, `bool horizontal`, `float blurStride`.
     * @param composite_shader Shader with uniforms: `sampler2D scene`, `sampler2D bloomBlur`, `float exposure`.
     * @param exposure Tone mapping exposure value.
     * @param blur_passes Number of blur iterations (each iteration is one horizontal + one vertical pass).
+    * @param blur_stride Per-tap texel offset multiplier; larger values widen the glow spread.
     */
     void apply(const resources::Shader *blur_shader, const resources::Shader *composite_shader,
-               float exposure, int blur_passes = 10) const;
+               float exposure, int blur_passes = 10, float blur_stride = 1.0f) const;
 
     /**
     * @brief Destroys all the OpenGL objects owned by this instance.

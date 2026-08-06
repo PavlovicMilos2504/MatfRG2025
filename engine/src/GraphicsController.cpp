@@ -96,4 +96,12 @@ void GraphicsController::draw_skybox(const resources::Shader *shader, const reso
     CHECKED_GL_CALL(glDepthFunc, GL_LESS);// set depth function back to default
     CHECKED_GL_CALL(glBindTexture, GL_TEXTURE_CUBE_MAP, 0);
 }
+
+void GraphicsController::draw_unit_cube(const resources::Shader *shader) const {
+    (void) shader;// shader is expected to already be bound with its uniforms set by the caller
+    uint32_t vao = OpenGL::init_skybox_cube();
+    CHECKED_GL_CALL(glBindVertexArray, vao);
+    CHECKED_GL_CALL(glDrawArrays, GL_TRIANGLES, 0, 36);
+    CHECKED_GL_CALL(glBindVertexArray, 0);
+}
 }// namespace engine::graphics

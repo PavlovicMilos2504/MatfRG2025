@@ -121,13 +121,18 @@ uint32_t Bloom::screen_quad_vao() {
 }
 
 void Bloom::apply(const resources::Shader *blur_shader, const resources::Shader *composite_shader, float exposure,
-                  int blur_passes) const {
+                  int blur_passes, float blur_stride) const {
     uint32_t quad_vao = screen_quad_vao();
+    // Fullscreen quads must ignore the depth buffer, otherwise stale depth values
+    // (the default framebuffer's depth buffer is never cleared by Bloom itself) can
+    // discard the quad fragments and leave the screen black.
+    OpenGL::disable_depth_testing();
 
     // Two-pass Gaussian blur of the bright-pass texture using the ping-pong framebuffers.
     bool horizontal = true;
     bool first_iteration = true;
     blur_shader->use();
+    blur_shader->set_float("blurStride", blur_stride);
     for (int i = 0; i < 2 * blur_passes; ++i) {
         CHECKED_GL_CALL(glBindFramebuffer, GL_FRAMEBUFFER, m_pingpong_fbo[horizontal]);
         blur_shader->set_bool("horizontal", horizontal);
@@ -153,6 +158,7 @@ void Bloom::apply(const resources::Shader *blur_shader, const resources::Shader 
     composite_shader->set_float("exposure", exposure);
     CHECKED_GL_CALL(glBindVertexArray, quad_vao);
     CHECKED_GL_CALL(glDrawArrays, GL_TRIANGLES, 0, 6);
+    OpenGL::enable_depth_testing();
 }
 
 void Bloom::destroy() {

@@ -33,7 +33,7 @@ void MainController::initialize() {
 
     // Room starts dim; only the moonlight-like directional light is on until the lamp is switched on.
     m_lighting.lamp.enabled = false;
-    m_lighting.lamp.position = glm::vec3(-0.4f, 2.6f, 4.0f);
+    m_lighting.lamp.position = glm::vec3(-0.315f, 1.61f, 4.1f);
 
     // Lock the cursor immediately so mouse movement rotates the camera from the very first frame.
     auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
@@ -62,11 +62,19 @@ void MainController::update() {
 }
 
 void MainController::begin_draw() {
-    engine::graphics::OpenGL::clear_buffers();
+    engine::core::Controller::get<engine::graphics::GraphicsController>()->bloom()->begin_capture();
 }
 
 void MainController::draw() {
     draw_table();
+    draw_lamp_bulb();
+
+    auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
+    graphics->bloom()->end_capture();
+
+    auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
+    graphics->bloom()->apply(resources->shader("blur"), resources->shader("bloom_composite"), m_bloom_exposure,
+                             m_bloom_blur_passes, m_bloom_blur_stride);
 }
 
 void MainController::end_draw() {
@@ -109,6 +117,7 @@ void MainController::draw_table() {
     shader->set_mat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(m_table_scale)));
     shader->set_vec3("viewPos", graphics->camera()->Position);
     shader->set_float("specularStrength", 0.3f);
+    shader->set_float("bloomThreshold", m_bloom_threshold);
 
     const auto &dir = m_lighting.directional;
     shader->set_bool("dirLight.enabled", dir.enabled);
@@ -128,6 +137,29 @@ void MainController::draw_table() {
     shader->set_float("pointLight.quadratic", lamp.quadratic);
 
     table->draw(shader);
+}
+
+void MainController::draw_lamp_bulb() {
+    if (!m_lighting.lamp.enabled) {
+        return;
+    }
+    auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
+    auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
+    auto shader = resources->shader("emissive");
+    const auto &lamp = m_lighting.lamp;
+
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), lamp.position);
+    model = glm::scale(model, glm::vec3(0.04f));
+
+    shader->use();
+    shader->set_mat4("model", model);
+    shader->set_mat4("view", graphics->camera()->view_matrix());
+    shader->set_mat4("projection", graphics->projection_matrix());
+    // Boosted beyond [0,1] so the bulb reliably exceeds bloomThreshold and blooms.
+    shader->set_vec3("emissiveColor", lamp.diffuse * 3.0f);
+    shader->set_float("bloomThreshold", m_bloom_threshold);
+
+    graphics->draw_unit_cube(shader);
 }
 
 void MainController::update_camera() {

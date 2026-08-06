@@ -87,6 +87,14 @@ public:
     */
     void draw_skybox(const resources::Shader *shader, const resources::Skybox *skybox);
 
+    /**
+    * @brief Draws a simple unit cube (side length 2, centered at the origin) using the given shader.
+    * Useful for representing simple/emissive geometry, such as a light bulb. The shader only needs
+    * a `vec3` position attribute at location 0; set the `model`/`view`/`projection` and any other
+    * uniforms on the shader before calling this function.
+    */
+    void draw_unit_cube(const resources::Shader *shader) const;
+
     Camera *camera() {
         return &m_camera;
     }

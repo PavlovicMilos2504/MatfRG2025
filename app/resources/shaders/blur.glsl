@@ -19,10 +19,13 @@ in vec2 TexCoords;
 uniform sampler2D image;
 uniform bool horizontal;
 uniform float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+// Multiplies the per-tap texel offset to widen the effective blur radius per pass,
+// letting the glow spread further onto nearby geometry (e.g. the lamp shade).
+uniform float blurStride;
 
 // Two-pass Gaussian blur: one axis per pass, see engine::graphics::Bloom::apply.
 void main() {
-    vec2 tex_offset = 1.0 / textureSize(image, 0);
+    vec2 tex_offset = blurStride / textureSize(image, 0);
     vec3 result = texture(image, TexCoords).rgb * weight[0];
     if (horizontal) {
         for (int i = 1; i < 5; ++i) {

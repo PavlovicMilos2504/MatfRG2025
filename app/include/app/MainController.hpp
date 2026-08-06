@@ -38,6 +38,22 @@ public:
         return m_table_scale;
     }
 
+    float &bloom_threshold() {
+        return m_bloom_threshold;
+    }
+
+    float &bloom_exposure() {
+        return m_bloom_exposure;
+    }
+
+    int &bloom_blur_passes() {
+        return m_bloom_blur_passes;
+    }
+
+    float &bloom_blur_stride() {
+        return m_bloom_blur_stride;
+    }
+
 private:
     void initialize() override;
 
@@ -55,10 +71,17 @@ private:
 
     void draw_table();
 
+    void draw_lamp_bulb();
+
     void update_camera();
 
     SceneLighting m_lighting{};
     float m_table_scale{1.0f};
+    // Bloom post-processing parameters, see engine::graphics::Bloom.
+    float m_bloom_threshold{1.0f};
+    float m_bloom_exposure{1.0f};
+    int m_bloom_blur_passes{10};
+    float m_bloom_blur_stride{1.0f};
     bool m_lamp_switch_in_progress{false};
     bool m_cursor_enabled{true};
 };
