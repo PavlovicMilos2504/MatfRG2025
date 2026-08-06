@@ -42,7 +42,8 @@ struct PointLight {
     float quadratic;
 };
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BrightColor;
 
 in vec2 TexCoords;
 in vec3 Normal;
@@ -55,6 +56,9 @@ uniform float specularStrength;
 uniform vec3 viewPos;
 uniform DirLight dirLight;
 uniform PointLight pointLight;
+// Fragments with luminance above this value are written to the bright-pass
+// buffer used by the Bloom post-processing effect (see engine::graphics::Bloom).
+uniform float bloomThreshold;
 
 vec3 calculate_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color, vec3 specular_color) {
     if (!light.enabled) {
@@ -99,4 +103,11 @@ void main() {
     result += calculate_point_light(pointLight, normal, FragPos, view_dir, diffuse_color, specular_color);
 
     FragColor = vec4(result, 1.0);
+
+    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if (brightness > bloomThreshold) {
+        BrightColor = vec4(FragColor.rgb, 1.0);
+    } else {
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
 }
