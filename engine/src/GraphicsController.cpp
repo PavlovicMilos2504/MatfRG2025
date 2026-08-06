@@ -32,6 +32,7 @@ void GraphicsController::initialize() {
 
     platform->register_platform_event_observer(std::make_unique<GraphicsPlatformEventObserver>(this));
     CHECKED_GL_CALL(glViewport, 0, 0, platform->window()->width(), platform->window()->height());
+    m_bloom.resize(platform->window()->width(), platform->window()->height());
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -49,6 +50,7 @@ void GraphicsController::update() {
 }
 
 void GraphicsController::terminate() {
+    m_bloom.destroy();
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -62,6 +64,7 @@ void GraphicsPlatformEventObserver::on_window_resize(int width, int height) {
     m_graphics->orthographic_params().Right = static_cast<float>(width);
     m_graphics->orthographic_params().Top = static_cast<float>(height);
     CHECKED_GL_CALL(glViewport, 0, 0, width, height);
+    m_graphics->bloom()->resize(width, height);
 }
 
 std::string_view GraphicsController::name() const {

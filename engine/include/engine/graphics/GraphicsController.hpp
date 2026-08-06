@@ -7,6 +7,7 @@
 #define GRAPHICSCONTROLLER_HPP
 
 #include <engine/core/Controller.hpp>
+#include <engine/graphics/Bloom.hpp>
 #include <engine/graphics/Camera.hpp>
 #include <engine/platform/PlatformEventObserver.hpp>
 
@@ -91,6 +92,13 @@ public:
     }
 
     /**
+    * @brief Access the @ref Bloom post-processing effect, used to implement the HDR Bloom lesson.
+    */
+    Bloom *bloom() {
+        return &m_bloom;
+    }
+
+    /**
     * @brief Compute the projection matrix.
     * @returns Return perspective projection by default.
     */
@@ -172,6 +180,7 @@ private:
 
     glm::mat4 m_projection_matrix{};
     Camera m_camera{};
+    Bloom m_bloom{};
     ImGuiContext *m_imgui_context{};
 };
 
