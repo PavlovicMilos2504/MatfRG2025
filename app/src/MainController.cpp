@@ -111,6 +111,12 @@ void MainController::draw_shadow_pass() {
     if (!m_lighting.lamp.enabled) {
         return;
     }
+    // Skip the expensive whole-scene x6 re-render if nothing shadow-relevant has changed.
+    bool needs_refresh = m_shadow_map_dirty || m_shadow_map_light_pos != m_lighting.lamp.position ||
+                         m_shadow_map_table_scale != m_table_scale;
+    if (!needs_refresh) {
+        return;
+    }
 
     auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
     auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
@@ -131,6 +137,10 @@ void MainController::draw_shadow_pass() {
     point_shadow->begin_capture();
     table->draw(shader);
     point_shadow->end_capture(platform->window()->width(), platform->window()->height());
+
+    m_shadow_map_light_pos = m_lighting.lamp.position;
+    m_shadow_map_table_scale = m_table_scale;
+    m_shadow_map_dirty = false;
 }
 
 void MainController::draw_table() {
