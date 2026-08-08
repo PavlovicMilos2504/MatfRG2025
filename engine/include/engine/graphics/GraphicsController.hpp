@@ -9,6 +9,7 @@
 #include <engine/core/Controller.hpp>
 #include <engine/graphics/Bloom.hpp>
 #include <engine/graphics/Camera.hpp>
+#include <engine/graphics/PointShadow.hpp>
 #include <engine/platform/PlatformEventObserver.hpp>
 
 struct ImGuiContext;
@@ -107,6 +108,14 @@ public:
     }
 
     /**
+    * @brief Access the @ref PointShadow omnidirectional shadow mapping effect, used to implement
+    * the Point Shadows lesson.
+    */
+    PointShadow *point_shadow() {
+        return &m_point_shadow;
+    }
+
+    /**
     * @brief Compute the projection matrix.
     * @returns Return perspective projection by default.
     */
@@ -189,6 +198,7 @@ private:
     glm::mat4 m_projection_matrix{};
     Camera m_camera{};
     Bloom m_bloom{};
+    PointShadow m_point_shadow{};
     ImGuiContext *m_imgui_context{};
 };
 

@@ -33,6 +33,8 @@ void GraphicsController::initialize() {
     platform->register_platform_event_observer(std::make_unique<GraphicsPlatformEventObserver>(this));
     CHECKED_GL_CALL(glViewport, 0, 0, platform->window()->width(), platform->window()->height());
     m_bloom.resize(platform->window()->width(), platform->window()->height());
+    // Shadow map resolution is independent of the window size, so this is a one-time setup.
+    m_point_shadow.initialize();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -51,6 +53,7 @@ void GraphicsController::update() {
 
 void GraphicsController::terminate() {
     m_bloom.destroy();
+    m_point_shadow.destroy();
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
