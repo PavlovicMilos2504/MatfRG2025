@@ -60,6 +60,43 @@ uniform PointLight pointLight;
 // buffer used by the Bloom post-processing effect (see engine::graphics::Bloom).
 uniform float bloomThreshold;
 
+// Omnidirectional shadow map for the lamp point light (see engine::graphics::PointShadow).
+uniform samplerCube shadowMap;
+uniform float farPlane;
+uniform float shadowBias;
+uniform bool shadowsEnabled;
+
+// Roughly separable sample offsets for softening shadow edges (PCF) with few cubemap samples.
+const vec3 sampleOffsetDirections[20] = vec3[](
+    vec3(1, 1, 1), vec3(1, -1, 1), vec3(-1, -1, 1), vec3(-1, 1, 1),
+    vec3(1, 1, -1), vec3(1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+    vec3(1, 1, 0), vec3(1, -1, 0), vec3(-1, -1, 0), vec3(-1, 1, 0),
+    vec3(1, 0, 1), vec3(-1, 0, 1), vec3(1, 0, -1), vec3(-1, 0, -1),
+    vec3(0, 1, 1), vec3(0, -1, 1), vec3(0, -1, -1), vec3(0, 1, -1)
+);
+
+float shadow_calculation(vec3 frag_pos) {
+    if (!shadowsEnabled) {
+        return 0.0;
+    }
+    vec3 frag_to_light = frag_pos - pointLight.position;
+    float current_depth = length(frag_to_light);
+
+    float view_distance = length(viewPos - frag_pos);
+    float disk_radius = (1.0 + (view_distance / farPlane)) / 25.0;
+
+    float shadow = 0.0;
+    int samples = 20;
+    for (int i = 0; i < samples; ++i) {
+        float closest_depth = texture(shadowMap, frag_to_light + sampleOffsetDirections[i] * disk_radius).r;
+        closest_depth *= farPlane;// undo [0,1] mapping written by the depth pass
+        if (current_depth - shadowBias > closest_depth) {
+            shadow += 1.0;
+        }
+    }
+    return shadow / float(samples);
+}
+
 vec3 calculate_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffuse_color, vec3 specular_color) {
     if (!light.enabled) {
         return vec3(0.0);
@@ -75,7 +112,7 @@ vec3 calculate_dir_light(DirLight light, vec3 normal, vec3 view_dir, vec3 diffus
     return ambient + diffuse + specular;
 }
 
-vec3 calculate_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_dir, vec3 diffuse_color, vec3 specular_color) {
+vec3 calculate_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_dir, vec3 diffuse_color, vec3 specular_color, float shadow) {
     if (!light.enabled) {
         return vec3(0.0);
     }
@@ -90,7 +127,8 @@ vec3 calculate_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 vi
     vec3 ambient = light.ambient * diffuse_color * attenuation;
     vec3 diffuse = light.diffuse * diff * diffuse_color * attenuation;
     vec3 specular = light.specular * spec * specular_color * attenuation;
-    return ambient + diffuse + specular;
+    // Only diffuse/specular are occluded by shadows; ambient still reaches shadowed fragments.
+    return ambient + (1.0 - shadow) * (diffuse + specular);
 }
 
 void main() {
@@ -100,7 +138,8 @@ void main() {
     vec3 specular_color = vec3(specularStrength);
 
     vec3 result = calculate_dir_light(dirLight, normal, view_dir, diffuse_color, specular_color);
-    result += calculate_point_light(pointLight, normal, FragPos, view_dir, diffuse_color, specular_color);
+    float shadow = shadow_calculation(FragPos);
+    result += calculate_point_light(pointLight, normal, FragPos, view_dir, diffuse_color, specular_color, shadow);
 
     FragColor = vec4(result, 1.0);
 
