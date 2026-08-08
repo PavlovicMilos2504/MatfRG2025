@@ -47,6 +47,11 @@ void GUIController::draw() {
     ImGui::SliderFloat("Radijus rasipanja##bloom", &engine::core::Controller::get<MainController>()->bloom_blur_stride(),
                        1.0f, 8.0f);
 
+    ImGui::SeparatorText("Senke (Point Shadows)");
+    ImGui::Checkbox("Ukljucene##shadows", &engine::core::Controller::get<MainController>()->shadows_enabled());
+    ImGui::SliderFloat("Bias##shadows", &engine::core::Controller::get<MainController>()->shadow_bias(),
+                       0.01f, 0.5f);
+
     ImGui::SeparatorText("Model stola");
     ImGui::SliderFloat("Skala", &engine::core::Controller::get<MainController>()->table_scale(), 0.1f, 3.0f);
 
