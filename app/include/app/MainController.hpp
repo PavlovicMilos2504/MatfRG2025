@@ -54,6 +54,14 @@ public:
         return m_bloom_blur_stride;
     }
 
+    float &shadow_bias() {
+        return m_shadow_bias;
+    }
+
+    bool &shadows_enabled() {
+        return m_shadows_enabled;
+    }
+
 private:
     void initialize() override;
 
@@ -73,6 +81,8 @@ private:
 
     void draw_lamp_bulb();
 
+    void draw_shadow_pass();
+
     void update_camera();
 
     SceneLighting m_lighting{};
@@ -82,6 +92,9 @@ private:
     float m_bloom_exposure{1.0f};
     int m_bloom_blur_passes{10};
     float m_bloom_blur_stride{1.0f};
+    // Point Shadows parameters, see engine::graphics::PointShadow.
+    float m_shadow_bias{0.15f};
+    bool m_shadows_enabled{true};
     bool m_lamp_switch_in_progress{false};
     bool m_cursor_enabled{true};
 };

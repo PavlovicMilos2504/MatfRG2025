@@ -62,6 +62,8 @@ void MainController::update() {
 }
 
 void MainController::begin_draw() {
+    // Shadow pass must run before the bloom HDR capture begins (both use framebuffer 0 when done).
+    draw_shadow_pass();
     engine::core::Controller::get<engine::graphics::GraphicsController>()->bloom()->begin_capture();
 }
 
@@ -105,6 +107,32 @@ void MainController::trigger_lamp_switch() {
     });
 }
 
+void MainController::draw_shadow_pass() {
+    if (!m_lighting.lamp.enabled) {
+        return;
+    }
+
+    auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
+    auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
+    auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+    auto point_shadow = graphics->point_shadow();
+    auto shader = resources->shader("point_shadow_depth");
+    auto table = resources->model("billiard_table");
+
+    auto light_space_matrices = point_shadow->light_space_matrices(m_lighting.lamp.position);
+    shader->use();
+    for (size_t i = 0; i < light_space_matrices.size(); ++i) {
+        shader->set_mat4("shadowMatrices[" + std::to_string(i) + "]", light_space_matrices[i]);
+    }
+    shader->set_vec3("lightPos", m_lighting.lamp.position);
+    shader->set_float("far_plane", point_shadow->far_plane());
+    shader->set_mat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(m_table_scale)));
+
+    point_shadow->begin_capture();
+    table->draw(shader);
+    point_shadow->end_capture(platform->window()->width(), platform->window()->height());
+}
+
 void MainController::draw_table() {
     auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
     auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
@@ -135,6 +163,12 @@ void MainController::draw_table() {
     shader->set_float("pointLight.constant", lamp.constant);
     shader->set_float("pointLight.linear", lamp.linear);
     shader->set_float("pointLight.quadratic", lamp.quadratic);
+
+    // Unit 10 avoids colliding with the mesh's own textures (Mesh::draw binds from unit 0).
+    graphics->point_shadow()->bind(shader, "shadowMap", 10);
+    shader->set_float("farPlane", graphics->point_shadow()->far_plane());
+    shader->set_float("shadowBias", m_shadow_bias);
+    shader->set_bool("shadowsEnabled", m_shadows_enabled);
 
     table->draw(shader);
 }
