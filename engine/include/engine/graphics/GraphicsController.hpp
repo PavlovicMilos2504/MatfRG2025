@@ -7,7 +7,9 @@
 #define GRAPHICSCONTROLLER_HPP
 
 #include <engine/core/Controller.hpp>
+#include <engine/graphics/Bloom.hpp>
 #include <engine/graphics/Camera.hpp>
+#include <engine/graphics/PointShadow.hpp>
 #include <engine/platform/PlatformEventObserver.hpp>
 
 struct ImGuiContext;
@@ -86,8 +88,31 @@ public:
     */
     void draw_skybox(const resources::Shader *shader, const resources::Skybox *skybox);
 
+    /**
+    * @brief Draws a simple unit cube (side length 2, centered at the origin) using the given shader.
+    * Useful for representing simple/emissive geometry, such as a light bulb. The shader only needs
+    * a `vec3` position attribute at location 0; set the `model`/`view`/`projection` and any other
+    * uniforms on the shader before calling this function.
+    */
+    void draw_unit_cube(const resources::Shader *shader) const;
+
     Camera *camera() {
         return &m_camera;
+    }
+
+    /**
+    * @brief Access the @ref Bloom post-processing effect, used to implement the HDR Bloom lesson.
+    */
+    Bloom *bloom() {
+        return &m_bloom;
+    }
+
+    /**
+    * @brief Access the @ref PointShadow omnidirectional shadow mapping effect, used to implement
+    * the Point Shadows lesson.
+    */
+    PointShadow *point_shadow() {
+        return &m_point_shadow;
     }
 
     /**
@@ -159,6 +184,12 @@ private:
     */
     void initialize() override;
 
+    /**
+    * @brief Keeps the perspective FOV in sync with @ref Camera::Zoom, which is otherwise only read
+    * once during @ref GraphicsController::initialize.
+    */
+    void update() override;
+
     void terminate();
 
     PerspectiveMatrixParams m_perspective_params{};
@@ -166,6 +197,8 @@ private:
 
     glm::mat4 m_projection_matrix{};
     Camera m_camera{};
+    Bloom m_bloom{};
+    PointShadow m_point_shadow{};
     ImGuiContext *m_imgui_context{};
 };
 

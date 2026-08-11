@@ -9,6 +9,7 @@
 #include <engine/core/App.hpp>
 
 #include <engine/core/Controller.hpp>
+#include <engine/core/EventController.hpp>
 
 
 #include <engine/platform/Input.hpp>

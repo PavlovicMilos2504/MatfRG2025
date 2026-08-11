@@ -1,0 +1,42 @@
+//#shader vertex
+#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTexCoords;
+
+out vec2 TexCoords;
+
+void main() {
+    TexCoords = aTexCoords;
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+
+//#shader fragment
+#version 330 core
+out vec4 FragColor;
+
+in vec2 TexCoords;
+
+uniform sampler2D image;
+uniform bool horizontal;
+uniform float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+// Multiplies the per-tap texel offset to widen the effective blur radius per pass,
+// letting the glow spread further onto nearby geometry (e.g. the lamp shade).
+uniform float blurStride;
+
+// Two-pass Gaussian blur: one axis per pass, see engine::graphics::Bloom::apply.
+void main() {
+    vec2 tex_offset = blurStride / textureSize(image, 0);
+    vec3 result = texture(image, TexCoords).rgb * weight[0];
+    if (horizontal) {
+        for (int i = 1; i < 5; ++i) {
+            result += texture(image, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+            result += texture(image, TexCoords - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+        }
+    } else {
+        for (int i = 1; i < 5; ++i) {
+            result += texture(image, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+            result += texture(image, TexCoords - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+        }
+    }
+    FragColor = vec4(result, 1.0);
+}

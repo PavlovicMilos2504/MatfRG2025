@@ -204,7 +204,18 @@ void PlatformController::_platform_on_mouse(double x, double y) {
 }
 
 void PlatformController::_platform_on_keyboard(int key_code, int action) {
-    const Key result = key(g_glfw_key_to_engine[key_code]);
+    // Build the state to report to observers directly from the GLFW action, instead of reading the
+    // cached state in m_keys (which is only updated once per frame by poll_events() and would
+    // otherwise be stale by one transition, e.g. reporting "Released" on the frame of the press).
+    // The main m_keys state machine used by poll_events()/key() for polling-based checks (ESC, WASD...)
+    // is intentionally left untouched here.
+    KeyId mapped_id = g_glfw_key_to_engine[key_code];
+    Key result = key(mapped_id);
+    if (action == GLFW_PRESS) {
+        result.m_state = Key::State::JustPressed;
+    } else if (action == GLFW_RELEASE) {
+        result.m_state = Key::State::JustReleased;
+    }
     for (auto &observer: m_platform_event_observers) {
         observer->on_key(result);
     }
@@ -239,6 +250,7 @@ void PlatformController::_platform_on_mouse_button(int button, int action) {
 }
 
 void PlatformController::set_enable_cursor(bool enabled) {
+    m_cursor_enabled = enabled;
     if (enabled) {
         glfwSetInputMode(m_window.handle_(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } else {

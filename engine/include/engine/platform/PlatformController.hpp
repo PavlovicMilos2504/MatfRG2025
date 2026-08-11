@@ -99,6 +99,14 @@ public:
     void set_enable_cursor(bool enabled);
 
     /**
+    * @brief Returns whether the cursor is currently enabled (visible and free to move), as last set
+    * by @ref set_enable_cursor.
+    */
+    bool is_cursor_enabled() const {
+        return m_cursor_enabled;
+    }
+
+    /**
     * @brief Swaps the current draw buffer for the main window. Should be called at the end of the frame.
     */
     void swap_buffers();
@@ -155,6 +163,7 @@ private:
     Window m_window;
     std::vector<Key> m_keys;
     std::vector<std::unique_ptr<PlatformEventObserver>> m_platform_event_observers;
+    bool m_cursor_enabled{true};
 };
 }// namespace engine::platform
 

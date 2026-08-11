@@ -32,6 +32,9 @@ void GraphicsController::initialize() {
 
     platform->register_platform_event_observer(std::make_unique<GraphicsPlatformEventObserver>(this));
     CHECKED_GL_CALL(glViewport, 0, 0, platform->window()->width(), platform->window()->height());
+    m_bloom.resize(platform->window()->width(), platform->window()->height());
+    // Shadow map resolution is independent of the window size, so this is a one-time setup.
+    m_point_shadow.initialize();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -41,7 +44,16 @@ void GraphicsController::initialize() {
     RG_GUARANTEE(ImGui_ImplOpenGL3_Init("#version 330 core"), "ImGUI failed to initialize for OpenGL");
 }
 
+void GraphicsController::update() {
+    // Camera::zoom() (invoked on mouse scroll) only updates camera->Zoom; without this, the
+    // perspective FOV would stay frozen at its initial value since it is otherwise only read once,
+    // in GraphicsController::initialize().
+    m_perspective_params.FOV = glm::radians(m_camera.Zoom);
+}
+
 void GraphicsController::terminate() {
+    m_bloom.destroy();
+    m_point_shadow.destroy();
     if (ImGui::GetCurrentContext()) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
@@ -55,6 +67,7 @@ void GraphicsPlatformEventObserver::on_window_resize(int width, int height) {
     m_graphics->orthographic_params().Right = static_cast<float>(width);
     m_graphics->orthographic_params().Top = static_cast<float>(height);
     CHECKED_GL_CALL(glViewport, 0, 0, width, height);
+    m_graphics->bloom()->resize(width, height);
 }
 
 std::string_view GraphicsController::name() const {
@@ -85,5 +98,13 @@ void GraphicsController::draw_skybox(const resources::Shader *shader, const reso
     CHECKED_GL_CALL(glBindVertexArray, 0);
     CHECKED_GL_CALL(glDepthFunc, GL_LESS);// set depth function back to default
     CHECKED_GL_CALL(glBindTexture, GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void GraphicsController::draw_unit_cube(const resources::Shader *shader) const {
+    (void) shader;// shader is expected to already be bound with its uniforms set by the caller
+    uint32_t vao = OpenGL::init_skybox_cube();
+    CHECKED_GL_CALL(glBindVertexArray, vao);
+    CHECKED_GL_CALL(glDrawArrays, GL_TRIANGLES, 0, 36);
+    CHECKED_GL_CALL(glBindVertexArray, 0);
 }
 }// namespace engine::graphics

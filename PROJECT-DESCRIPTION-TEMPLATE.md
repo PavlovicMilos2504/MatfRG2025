@@ -1,47 +1,45 @@
-# {NAME-OF-THE-PROJECT}
+# Bilijarska sala
 
-{INDEX} - {STUDENT-FULL-NAME}  
-{PROJECT DESCRIPTION}
+22008 - Milos Pavlovic  
+3D scena bilijarske sale sa stolom, direkcionim i tackastim (lampa) svjetlom, bloom efektom i sjenkama.
 
 ## Controls
 
-{BUTTON1} -> {ACTION1}  
-{BUTTON2} -> {ACTION2}  
-...  
-{BUTTONN} -> {ACTIONN}
+W, A, S, D -> kretanje kamere  
+Mis -> rotacija kamere  
+L -> paljenje/gasenje lampe iznad stola  
+F1 -> prikaz/sakrivanje GUI-ja  
+ESC -> izlazak iz aplikacije
 
 ## Features
 
 ### Fundamental:
 
-[ ] Model with lighting
-[ ] Two types of lighting with customizable colors and movement through GUI or ACTIONS
-[ ] {ACTION_X} --- AFTER_M_SECONDS---Triggers---> {EVENT_A} ---> AFTER_N_SECONDS---Triggers---> {EVENT_B}
+[x] Model with lighting
+[x] Two types of lighting with customizable colors and movement through GUI or ACTIONS
+[x] Taster L (paljenje lampe) --- AFTER 1 SECOND ---Triggers---> Lampa se pali iznad stola ---> AFTER 2 SECONDS ---Triggers---> Lampa dostize punu jacinu svjetla
 
 ### Group A:
 
 [ ] Frame-buffers with post-processing   
 [ ] Off-screen Anti-Aliasing  
 [ ] Parallax Mapping
-[ ] Bloom with the use of HDR
+[x] Bloom with the use of HDR
 
 ### Group B:
 [ ] Deferred Shading  
-[ ] Point Shadows  
+[x] Point Shadows  
 [ ] SSAO
 
 ### Engine improvement:
 
-[ ] ...
+[x] Ispravno ucitavanje modela sa vise ugnijezdenih cvorova (Assimp aiProcess_PreTransformVertices)
+[x] Ispravka PlatformController-a: JustPressed stanje tastera se sada racuna direktno iz GLFW akcije umjesto zastarjelog stanja
 
 ## Models:
 
-[link1]   
-[link2]
+[Billiard Bar](https://sketchfab.com/3d-models/billiard-bar-e2291b3de255401b8a04c5bffc446437)
 
 ## Textures
 
-[link1]  
-[link2]
-
-{OTHER-RESOURCES}
+Teksture su ukljucene uz model bilijarske sale (vidi sekciju Models).
