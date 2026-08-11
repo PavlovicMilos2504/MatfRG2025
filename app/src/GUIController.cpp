@@ -38,19 +38,14 @@ void GUIController::draw() {
     ImGui::SliderFloat("Slabljenje (quadratic)##lamp", &lighting.lamp.quadratic, 0.0f, 1.0f);
 
     ImGui::SeparatorText("Bloom (HDR sjaj)");
-    ImGui::SliderFloat("Prag sjaja##bloom", &engine::core::Controller::get<MainController>()->bloom_threshold(),
-                       0.1f, 5.0f);
-    ImGui::SliderFloat("Ekspozicija##bloom", &engine::core::Controller::get<MainController>()->bloom_exposure(),
-                       0.1f, 5.0f);
-    ImGui::SliderInt("Broj blur prolaza##bloom", &engine::core::Controller::get<MainController>()->bloom_blur_passes(),
-                     1, 30);
-    ImGui::SliderFloat("Radijus rasipanja##bloom", &engine::core::Controller::get<MainController>()->bloom_blur_stride(),
-                       1.0f, 8.0f);
+    ImGui::SliderFloat("Prag sjaja##bloom", &graphics->bloom()->threshold(), 0.1f, 5.0f);
+    ImGui::SliderFloat("Ekspozicija##bloom", &graphics->bloom()->exposure(), 0.1f, 5.0f);
+    ImGui::SliderInt("Broj blur prolaza##bloom", &graphics->bloom()->blur_passes(), 1, 30);
+    ImGui::SliderFloat("Radijus rasipanja##bloom", &graphics->bloom()->blur_stride(), 1.0f, 8.0f);
 
     ImGui::SeparatorText("Senke (Point Shadows)");
-    ImGui::Checkbox("Ukljucene##shadows", &engine::core::Controller::get<MainController>()->shadows_enabled());
-    ImGui::SliderFloat("Bias##shadows", &engine::core::Controller::get<MainController>()->shadow_bias(),
-                       0.01f, 0.5f);
+    ImGui::Checkbox("Ukljucene##shadows", &graphics->point_shadow()->enabled());
+    ImGui::SliderFloat("Bias##shadows", &graphics->point_shadow()->bias(), 0.01f, 0.5f);
 
     ImGui::SeparatorText("Model stola");
     ImGui::SliderFloat("Skala", &engine::core::Controller::get<MainController>()->table_scale(), 0.1f, 3.0f);

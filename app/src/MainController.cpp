@@ -1,4 +1,3 @@
-#include <app/EventController.hpp>
 #include <app/GUIController.hpp>
 #include <app/MainController.hpp>
 #include <engine/core/Engine.hpp>
@@ -37,8 +36,7 @@ void MainController::initialize() {
 
     // Lock the cursor immediately so mouse movement rotates the camera from the very first frame.
     auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
-    m_cursor_enabled = false;
-    platform->set_enable_cursor(m_cursor_enabled);
+    platform->set_enable_cursor(false);
 }
 
 bool MainController::loop() {
@@ -52,8 +50,7 @@ bool MainController::loop() {
 void MainController::poll_events() {
     const auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
     if (platform->key(engine::platform::KEY_F1).state() == engine::platform::Key::State::JustPressed) {
-        m_cursor_enabled = !m_cursor_enabled;
-        platform->set_enable_cursor(m_cursor_enabled);
+        platform->set_enable_cursor(!platform->is_cursor_enabled());
     }
 }
 
@@ -75,8 +72,7 @@ void MainController::draw() {
     graphics->bloom()->end_capture();
 
     auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
-    graphics->bloom()->apply(resources->shader("blur"), resources->shader("bloom_composite"), m_bloom_exposure,
-                             m_bloom_blur_passes, m_bloom_blur_stride);
+    graphics->bloom()->apply(resources->shader("blur"), resources->shader("bloom_composite"));
 }
 
 void MainController::end_draw() {
@@ -89,7 +85,7 @@ void MainController::trigger_lamp_switch() {
     }
     m_lamp_switch_in_progress = true;
 
-    auto events = engine::core::Controller::get<EventController>();
+    auto events = engine::core::Controller::get<engine::core::EventController>();
     spdlog::info("[MainController]: lamp switch pressed, lamp will turn on shortly...");
 
     // ACTION (key L pressed) --- after 1s ---> EVENT_A (lamp turns on)
@@ -155,7 +151,7 @@ void MainController::draw_table() {
     shader->set_mat4("model", glm::scale(glm::mat4(1.0f), glm::vec3(m_table_scale)));
     shader->set_vec3("viewPos", graphics->camera()->Position);
     shader->set_float("specularStrength", 0.3f);
-    shader->set_float("bloomThreshold", m_bloom_threshold);
+    shader->set_float("bloomThreshold", graphics->bloom()->threshold());
 
     const auto &dir = m_lighting.directional;
     shader->set_bool("dirLight.enabled", dir.enabled);
@@ -177,8 +173,8 @@ void MainController::draw_table() {
     // Unit 10 avoids colliding with the mesh's own textures (Mesh::draw binds from unit 0).
     graphics->point_shadow()->bind(shader, "shadowMap", 10);
     shader->set_float("farPlane", graphics->point_shadow()->far_plane());
-    shader->set_float("shadowBias", m_shadow_bias);
-    shader->set_bool("shadowsEnabled", m_shadows_enabled);
+    shader->set_float("shadowBias", graphics->point_shadow()->bias());
+    shader->set_bool("shadowsEnabled", graphics->point_shadow()->enabled());
 
     table->draw(shader);
 }
@@ -201,7 +197,7 @@ void MainController::draw_lamp_bulb() {
     shader->set_mat4("projection", graphics->projection_matrix());
     // Boosted beyond [0,1] so the bulb reliably exceeds bloomThreshold and blooms.
     shader->set_vec3("emissiveColor", lamp.diffuse * 3.0f);
-    shader->set_float("bloomThreshold", m_bloom_threshold);
+    shader->set_float("bloomThreshold", graphics->bloom()->threshold());
 
     graphics->draw_unit_cube(shader);
 }

@@ -48,25 +48,51 @@ public:
     /**
     * @brief Blurs the bright-pass texture using a two-pass Gaussian blur, then additively composites
     * it with the scene texture, tone maps, and draws the result as a fullscreen quad onto the
-    * currently bound framebuffer.
+    * currently bound framebuffer. Uses the current @ref exposure, @ref blur_passes and @ref blur_stride
+    * parameter values.
     * @param blur_shader Shader with uniforms: `sampler2D image`, `bool horizontal`, `float blurStride`.
     * @param composite_shader Shader with uniforms: `sampler2D scene`, `sampler2D bloomBlur`, `float exposure`.
-    * @param exposure Tone mapping exposure value.
-    * @param blur_passes Number of blur iterations (each iteration is one horizontal + one vertical pass).
-    * @param blur_stride Per-tap texel offset multiplier; larger values widen the glow spread.
     */
-    void apply(const resources::Shader *blur_shader, const resources::Shader *composite_shader,
-               float exposure, int blur_passes = 10, float blur_stride = 1.0f) const;
+    void apply(const resources::Shader *blur_shader, const resources::Shader *composite_shader) const;
 
     /**
     * @brief Destroys all the OpenGL objects owned by this instance.
     */
     void destroy();
 
+    /**
+    * @brief Brightness threshold above which fragments are extracted into the bright-pass texture.
+    * Set as the `bloomThreshold` uniform on shaders that write to the scene's bright-pass attachment.
+    */
+    float &threshold() {
+        return m_threshold;
+    }
+
+    /**
+    * @brief Tone mapping exposure value used by @ref apply.
+    */
+    float &exposure() {
+        return m_exposure;
+    }
+
+    /**
+    * @brief Number of blur iterations (each iteration is one horizontal + one vertical pass) used by @ref apply.
+    */
+    int &blur_passes() {
+        return m_blur_passes;
+    }
+
+    /**
+    * @brief Per-tap texel offset multiplier used by @ref apply; larger values widen the glow spread.
+    */
+    float &blur_stride() {
+        return m_blur_stride;
+    }
+
 private:
     void create_framebuffers();
     void destroy_framebuffers();
-    static uint32_t screen_quad_vao();
+    uint32_t screen_quad_vao() const;
 
     int m_width{0};
     int m_height{0};
@@ -78,6 +104,16 @@ private:
 
     uint32_t m_pingpong_fbo[2]{0, 0};
     uint32_t m_pingpong_texture[2]{0, 0};
+
+    // Fullscreen quad used by apply(), lazily created on first use and cached as a member
+    // (instead of a function-local static) to avoid the atomic initialization check every call.
+    mutable uint32_t m_quad_vao{0};
+    mutable uint32_t m_quad_vbo{0};
+
+    float m_threshold{1.0f};
+    float m_exposure{1.0f};
+    int m_blur_passes{10};
+    float m_blur_stride{1.0f};
 };
 }// namespace engine::graphics
 

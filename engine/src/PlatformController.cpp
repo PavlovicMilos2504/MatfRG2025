@@ -250,6 +250,7 @@ void PlatformController::_platform_on_mouse_button(int button, int action) {
 }
 
 void PlatformController::set_enable_cursor(bool enabled) {
+    m_cursor_enabled = enabled;
     if (enabled) {
         glfwSetInputMode(m_window.handle_(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } else {

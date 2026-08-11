@@ -1,14 +1,19 @@
 #include <algorithm>
-#include <app/EventController.hpp>
-#include <engine/core/Engine.hpp>
+#include <engine/core/EventController.hpp>
+#include <engine/platform/PlatformController.hpp>
 
-namespace app {
+namespace engine::core {
+void EventController::initialize() {
+    m_events.reserve(kInitialCapacity);
+    m_ready.reserve(kInitialCapacity);
+}
+
 void EventController::schedule(float delay_seconds, std::function<void()> callback) {
     m_events.push_back(ScheduledEvent{delay_seconds, std::move(callback)});
 }
 
 void EventController::update() {
-    const auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+    const auto platform = Controller::get<engine::platform::PlatformController>();
     const float dt = platform->dt();
 
     for (auto &event: m_events) {
@@ -20,11 +25,12 @@ void EventController::update() {
     auto fire_from = std::stable_partition(m_events.begin(), m_events.end(), [](const ScheduledEvent &event) {
         return event.remaining_seconds > 0.0f;
     });
-    std::vector<ScheduledEvent> ready(std::make_move_iterator(fire_from), std::make_move_iterator(m_events.end()));
+    m_ready.clear();
+    m_ready.insert(m_ready.end(), std::make_move_iterator(fire_from), std::make_move_iterator(m_events.end()));
     m_events.erase(fire_from, m_events.end());
 
-    for (auto &event: ready) {
+    for (auto &event: m_ready) {
         event.callback();
     }
 }
-}// namespace app
+}// namespace engine::core

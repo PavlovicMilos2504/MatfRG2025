@@ -1,11 +1,10 @@
 #include <app/App.hpp>
-#include <app/EventController.hpp>
 #include <app/GUIController.hpp>
 #include <app/MainController.hpp>
 
 namespace app {
 void BilliardApp::app_setup() {
-    auto event_controller = register_controller<EventController>();
+    auto event_controller = register_controller<engine::core::EventController>();
     auto main_controller = register_controller<MainController>();
     auto gui_controller = register_controller<GUIController>();
 

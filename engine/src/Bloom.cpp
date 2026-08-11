@@ -89,11 +89,11 @@ void Bloom::end_capture() const {
     CHECKED_GL_CALL(glBindFramebuffer, GL_FRAMEBUFFER, 0);
 }
 
-uint32_t Bloom::screen_quad_vao() {
-    // NDC fullscreen quad (position.xy, uv.xy), cached like OpenGL::init_skybox_cube.
-    static uint32_t quad_vao = 0;
-    if (quad_vao != 0) {
-        return quad_vao;
+uint32_t Bloom::screen_quad_vao() const {
+    // NDC fullscreen quad (position.xy, uv.xy), cached in m_quad_vao/m_quad_vbo so it is only
+    // created once per Bloom instance.
+    if (m_quad_vao != 0) {
+        return m_quad_vao;
     }
     // clang-format off
     float vertices[] = {
@@ -106,22 +106,20 @@ uint32_t Bloom::screen_quad_vao() {
          1.0f,  1.0f, 1.0f, 1.0f,
     };
     // clang-format on
-    uint32_t quad_vbo = 0;
-    CHECKED_GL_CALL(glGenVertexArrays, 1, &quad_vao);
-    CHECKED_GL_CALL(glGenBuffers, 1, &quad_vbo);
-    CHECKED_GL_CALL(glBindVertexArray, quad_vao);
-    CHECKED_GL_CALL(glBindBuffer, GL_ARRAY_BUFFER, quad_vbo);
+    CHECKED_GL_CALL(glGenVertexArrays, 1, &m_quad_vao);
+    CHECKED_GL_CALL(glGenBuffers, 1, &m_quad_vbo);
+    CHECKED_GL_CALL(glBindVertexArray, m_quad_vao);
+    CHECKED_GL_CALL(glBindBuffer, GL_ARRAY_BUFFER, m_quad_vbo);
     CHECKED_GL_CALL(glBufferData, GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
     CHECKED_GL_CALL(glEnableVertexAttribArray, 0);
     CHECKED_GL_CALL(glVertexAttribPointer, 0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);// NOLINT
     CHECKED_GL_CALL(glEnableVertexAttribArray, 1);
     CHECKED_GL_CALL(glVertexAttribPointer, 1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),// NOLINT
                     (void *) (2 * sizeof(float)));                                     // NOLINT
-    return quad_vao;
+    return m_quad_vao;
 }
 
-void Bloom::apply(const resources::Shader *blur_shader, const resources::Shader *composite_shader, float exposure,
-                  int blur_passes, float blur_stride) const {
+void Bloom::apply(const resources::Shader *blur_shader, const resources::Shader *composite_shader) const {
     uint32_t quad_vao = screen_quad_vao();
     // Fullscreen quads must ignore the depth buffer, otherwise stale depth values
     // (the default framebuffer's depth buffer is never cleared by Bloom itself) can
@@ -132,8 +130,8 @@ void Bloom::apply(const resources::Shader *blur_shader, const resources::Shader 
     bool horizontal = true;
     bool first_iteration = true;
     blur_shader->use();
-    blur_shader->set_float("blurStride", blur_stride);
-    for (int i = 0; i < 2 * blur_passes; ++i) {
+    blur_shader->set_float("blurStride", m_blur_stride);
+    for (int i = 0; i < 2 * m_blur_passes; ++i) {
         CHECKED_GL_CALL(glBindFramebuffer, GL_FRAMEBUFFER, m_pingpong_fbo[horizontal]);
         blur_shader->set_bool("horizontal", horizontal);
         CHECKED_GL_CALL(glActiveTexture, GL_TEXTURE0);
@@ -155,7 +153,7 @@ void Bloom::apply(const resources::Shader *blur_shader, const resources::Shader 
     CHECKED_GL_CALL(glActiveTexture, GL_TEXTURE1);
     CHECKED_GL_CALL(glBindTexture, GL_TEXTURE_2D, m_pingpong_texture[!horizontal]);
     composite_shader->set_int("bloomBlur", 1);
-    composite_shader->set_float("exposure", exposure);
+    composite_shader->set_float("exposure", m_exposure);
     CHECKED_GL_CALL(glBindVertexArray, quad_vao);
     CHECKED_GL_CALL(glDrawArrays, GL_TRIANGLES, 0, 6);
     OpenGL::enable_depth_testing();
@@ -163,5 +161,10 @@ void Bloom::apply(const resources::Shader *blur_shader, const resources::Shader 
 
 void Bloom::destroy() {
     destroy_framebuffers();
+    if (m_quad_vao != 0) {
+        CHECKED_GL_CALL(glDeleteVertexArrays, 1, &m_quad_vao);
+        CHECKED_GL_CALL(glDeleteBuffers, 1, &m_quad_vbo);
+        m_quad_vao = 0;
+    }
 }
 }// namespace engine::graphics

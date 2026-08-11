@@ -38,30 +38,6 @@ public:
         return m_table_scale;
     }
 
-    float &bloom_threshold() {
-        return m_bloom_threshold;
-    }
-
-    float &bloom_exposure() {
-        return m_bloom_exposure;
-    }
-
-    int &bloom_blur_passes() {
-        return m_bloom_blur_passes;
-    }
-
-    float &bloom_blur_stride() {
-        return m_bloom_blur_stride;
-    }
-
-    float &shadow_bias() {
-        return m_shadow_bias;
-    }
-
-    bool &shadows_enabled() {
-        return m_shadows_enabled;
-    }
-
 private:
     void initialize() override;
 
@@ -87,20 +63,11 @@ private:
 
     SceneLighting m_lighting{};
     float m_table_scale{1.0f};
-    // Bloom post-processing parameters, see engine::graphics::Bloom.
-    float m_bloom_threshold{1.0f};
-    float m_bloom_exposure{1.0f};
-    int m_bloom_blur_passes{10};
-    float m_bloom_blur_stride{1.0f};
-    // Point Shadows parameters, see engine::graphics::PointShadow.
-    float m_shadow_bias{0.15f};
-    bool m_shadows_enabled{true};
     // Depth cubemap is only re-rendered when the lamp position or table scale change (see draw_shadow_pass).
     glm::vec3 m_shadow_map_light_pos{0.0f};
     float m_shadow_map_table_scale{0.0f};
     bool m_shadow_map_dirty{true};
     bool m_lamp_switch_in_progress{false};
-    bool m_cursor_enabled{true};
 };
 }// namespace app
 

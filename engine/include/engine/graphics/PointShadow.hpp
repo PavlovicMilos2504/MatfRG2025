@@ -80,6 +80,20 @@ public:
     */
     void destroy();
 
+    /**
+    * @brief Depth bias used by the shading shader to reduce shadow acne artifacts.
+    */
+    float &bias() {
+        return m_bias;
+    }
+
+    /**
+    * @brief Whether shadow sampling should be applied when shading the scene.
+    */
+    bool &enabled() {
+        return m_enabled;
+    }
+
 private:
     int m_resolution{1024};
     float m_near_plane{0.05f};
@@ -87,6 +101,9 @@ private:
 
     uint32_t m_depth_map_fbo{0};
     uint32_t m_depth_cubemap{0};
+
+    float m_bias{0.15f};
+    bool m_enabled{true};
 };
 }// namespace engine::graphics
 
